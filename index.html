@@ -1,0 +1,62 @@
+<head>
+  <meta charset="utf-8">
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
+  <script src="https://js.braintreegateway.com/web/dropin/1.16.0/js/dropin.min.js"></script>
+</head>
+<body>
+  <center>
+    <h3>Donate Now!!!</h3>
+    <table>
+      <tr><td>
+     Donation Name: <select name="donation" id="donation">
+    <option value="First">First</option>
+    <option value="Second">Second</option>
+    <option value="Third">Third</option>
+  </select>
+</td></tr>
+<tr><td>
+  <div id="dropin-container"></div>
+</td></tr>
+ <tr><td>
+
+  <button id="submit-button">Submit</button> <span id="msg" style="display: none; color:green;">Transacting. Please wait..</span>
+</td></tr></table>
+</center>
+  <script>
+    var button = document.querySelector('#submit-button');
+     $.ajax({
+        url: 'token.php',
+        type: 'get',
+        success: function( token ){
+              braintree.dropin.create({
+                authorization: token,
+                container: '#dropin-container',
+              }, function (createErr, instance) {
+                button.addEventListener('click', function () {
+                      $("#msg").show();
+                      instance.requestPaymentMethod(function (err, payload) {
+                        payload.donation = $('#donation').val();
+                          // Submit payload.nonce to your server
+                          $.ajax({
+                              url: 'server.php',
+                              type: 'post',
+                              data: JSON.stringify(payload),
+                              success: function( data ){
+                                var response = JSON.parse(data);
+                                alert("Your transaction ID is: "+response.id);
+                                window.location="success.html"
+                              },
+                              error: function( error){
+                                  console.log( errorThrown );
+                              }
+                          });
+                      });
+                  });
+              });
+        },
+        error: function( error){
+            console.log( errorThrown );
+        }
+    });
+  </script>
+</body>
